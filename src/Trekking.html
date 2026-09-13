@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trekkinero</title>
+  <!--<script src="https://cdn.tailwindcss.com"></script>-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- === CAMBIO 1: AGREGAR ESTA LÍNEA === -->
+  <link rel="icon" type="image/png" href="trek.png">
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+  <!-- Encabezado -->
+  <header class="bg-emerald-800 text-white p-2 sticky top-0 z-50 w-auto shadow-lg">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+
+      <!-- === CAMBIO 2: REEMPLAZAR h1 POR ESTO === -->
+      <a href="#" class="block">
+        <img src="LogoTrekk.png" alt="Trekk Logo" class="h-16 w-80">
+      </a>
+
+      <!--<h1 class="text-2xl font-bold tracking-wider uppercase">Trekkinero</h1>-->
+      <button onclick="toggleCart()" class="relative p-5 text-xl">
+        <i class="fas fa-shopping-cart"></i>
+        <span id="cart-count" class="absolute -top-0 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="max-w-6xl mx-auto p-4 md:p-6">
+    <!-- Barra de Búsqueda y Filtros de Categoría -->
+    <div class="mb-6 space-y-4">
+      <!-- Buscador con X perfectamente centrada -->
+      <div class="relative max-w-md mx-auto sm:mx-0">
+        <input type="text" id="search-input" onkeyup="toggleClearButton(); filterProducts();" placeholder="Buscar producto o marca..." 
+               class="w-full pl-10 pr-10 py-2.5 rounded-full border border-gray-300 focus:outline-none focus:border-[#0b6643] text-sm bg-white shadow-sm">
+        
+        <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+        
+        <!-- Botón X con alineación centrada y suave -->
+        <button id="clear-search-btn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-1 rounded-full focus:outline-none transition-colors items-center justify-center">
+          <i class="fas fa-times-circle text-base leading-none"></i>
+        </button>
+      </div>
+    
+    <!-- Filtros de Categoría -->
+    <div class="flex gap-2 overflow-x-auto pb-4 mb-6">
+      <button onclick="filterCategory('todos')" class="px-4 py-2 bg-black text-white rounded-full text-sm font-medium whitespace-nowrap">Todos</button>
+      <button onclick="filterCategory('gorras')" class="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-200">Gorras</button>
+      <button onclick="filterCategory('sombreros')" class="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-200">Sombreros</button>
+      <button onclick="filterCategory('varios')" class="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-200">Varios</button>
+    </div>
+
+    <!-- Rejilla de Productos -->
+    <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+      <!-- Productos inyectados por JavaScript -->
+    </div>
+  </main>
+
+  <!-- Modal Guía de Tallas -->
+  <div id="size-guide-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4" onclick="closeSizeGuide()">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl relative" onclick="event.stopPropagation()">
+      <button onclick="closeSizeGuide()" class="absolute top-3 right-3 text-gray-500 hover:text-black text-xl font-bold">&times;</button>
+      <h3 class="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+        <i class="fas fa-ruler-horizontal text-[#0b6643]"></i> Guía de Tallas y Medidas
+      </h3>
+      <p class="text-xs text-gray-500 mb-4">Medidas aproximadas expresadas en centímetros.</p>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-100 border-b">
+              <th class="p-2 font-bold">Talla</th>
+              <th class="p-2 font-bold">Contorno (cm)</th>
+              <th class="p-2 font-bold">Largo / Ancho</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <tr><td class="p-2 font-semibold">S</td><td class="p-2">52 - 55 cm</td><td class="p-2">Pequeño / Ajustado</td></tr>
+            <tr><td class="p-2 font-semibold">M</td><td class="p-2">56 - 58 cm</td><td class="p-2">Estándar / Mediano</td></tr>
+            <tr><td class="p-2 font-semibold">L</td><td class="p-2">59 - 61 cm</td><td class="p-2">Grande</td></tr>
+            <tr><td class="p-2 font-semibold">XL</td><td class="p-2">62 + cm</td><td class="p-2">Extra Grande</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button onclick="closeSizeGuide()" class="w-full mt-5 bg-black text-white py-2 rounded-lg text-xs font-bold uppercase tracking-wider">Entendido</button>
+    </div>
+  </div>
+
+  <!-- Sidebar del Carrito -->
+  <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-end">
+    <div class="bg-white w-full max-w-md h-full p-6 flex flex-col justify-between shadow-xl">
+      <div>
+        <div class="flex justify-between items-center border-b pb-4">
+          <h2 class="text-xl font-bold">Tu Pedido</h2>
+          <button onclick="toggleCart()" class="text-gray-500 text-2xl">&times;</button>
+        </div>
+        <div id="cart-items" class="mt-4 space-y-4 max-h-[60vh] overflow-y-auto">
+          <!-- Items del carrito -->
+        </div>
+      </div>
+      
+      <div class="border-t pt-4">
+        <div class="flex justify-between text-lg font-bold mb-4">
+          <span>Total:</span>
+          <span id="cart-total">Bs.0</span>
+        </div>
+        <button onclick="sendCartWhatsApp()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+          <i class="fab fa-whatsapp text-xl"></i> Enviar Carrito por WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Vista Previa / Imagen Grande con Navegación -->
+  <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-50 flex items-center justify-center p-2 sm:p-4 touch-none" onclick="closeImageModal()">
+    
+    <!-- Botón de Cierre -->
+    <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white text-3xl font-bold z-50 p-2 focus:outline-none hover:text-gray-300">&times;</button>
+
+    <!-- Flecha Izquierda -->
+    <button onclick="event.stopPropagation(); prevModalImage();" class="absolute left-2 sm:left-6 text-white text-2xl sm:text-4xl bg-black bg-opacity-40 hover:bg-opacity-70 p-3 rounded-full z-50 transition focus:outline-none">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+
+    <!-- Contenedor de la Imagen Ampliada -->
+    <div class="relative max-w-4xl max-h-[90vh] flex items-center justify-center" onclick="event.stopPropagation()">
+      <img id="modal-image" src="" alt="Vista previa" class="max-w-full max-h-[80vh] sm:max-h-[85vh] object-contain rounded-lg shadow-2xl transition-all duration-200">
+    </div>
+
+    <!-- Flecha Derecha -->
+    <button onclick="event.stopPropagation(); nextModalImage();" class="absolute right-2 sm:right-6 text-white text-2xl sm:text-4xl bg-black bg-opacity-40 hover:bg-opacity-70 p-3 rounded-full z-50 transition focus:outline-none">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Pie de Página -->
+  <footer class="bg-[#0b6643] text-white mt-12 border-t border-green-800">
+    <div class="max-w-6xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <!-- Logo de la Empresa -->
+      <div class="flex flex-col items-center md:items-start">
+        <a href="#" class="block hover:opacity-90 transition-opacity">
+          <img src="a la cima con estilo.png" alt="Trekkinero Logo" class="h-10 sm:h-16 object-contain bg-white p-0 rounded shadow-sm">
+        </a>
+      </div>
+
+      <!-- Contacto de Celular / WhatsApp -->
+      <a href="https://wa.me/59168773185" target="_blank" class="flex items-center gap-3 bg-white/10 active:bg-white/20 px-5 py-2.5 rounded-full border border-white/20 transition">
+        <i class="fab fa-whatsapp text-2xl text-green-400"></i>
+        <span class="text-sm font-semibold tracking-wide">@Trekkinero</span>
+      </a>
+
+      <!-- Redes Sociales -->
+      <div class="flex items-center gap-4 text-xl">
+        <a href="https://www.facebook.com/profile.php?id=61593841027087" target="_blank" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="https://www.instagram.com/trekkinero_scz?stkn=MW0zNmsxZTJrbXQ3bg==" target="_blank" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://tiktok.com" target="_blank" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+          <i class="fab fa-tiktok"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Derechos de Autor -->
+    <div class="bg-[#07472e] py-4 text-center text-xs text-gray-200 border-t border-green-900">
+      &copy; 2026 Trekkinero. Todos los derechos reservados.
+    </div>
+  </footer>
+
+  <script>
+    const phoneNumber = "59168773185"; // Reemplaza con tu número de WhatsApp
+
+    // Lista completa de productos con 3 imágenes, precios, códigos y tallas
+    const products = [
+      { 
+        id: 1, 
+        code: "GOR-001", 
+        name: "Gorra Buff Run R-Jayla Multi", 
+        price: 250, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "92% polyester; 8% elastane",
+          uv: "UPF 50+",
+          peso: "180g",
+          uso: "Running / Treks suaves"
+        },
+        images: [
+          "https://i.postimg.cc/qvkCyfH1/Buff1.jpg",
+          "https://i.postimg.cc/9QWqZ3HS/Buff2.jpg",
+          "https://i.postimg.cc/fRw0m4Q1/Buff3.jpg"
+        ]
+      },
+      { 
+        id: 2, 
+        code: "GOR-002", 
+        name: "Gorra Sprints HyperG",
+        price: 190,
+        category: "gorras",
+        sizes: ["M"],
+        specs: {
+          material: "100% poliéster",
+          uv: "UPF 40+",
+          peso: "48g",
+          uso: "Running"
+        },
+        images: [
+          "https://i.postimg.cc/y6mmZySB/Sprints1.jpg",
+          "https://i.postimg.cc/nV44DGQn/Sprints2.jpg",
+          "https://i.postimg.cc/jqcWTg7D/Sprints3.jpg"
+        ]
+      },
+      { 
+        id: 3, 
+        code: "GOR-003", 
+        name: "Gorra Running", 
+        price: 150, 
+        category: "gorras", 
+        sizes: ["M", "L"],
+        specs: {
+          material: "Algodón Respirable",
+          uv: "UPF 40+",
+          peso: "10g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/BZ1tRSCv/Full1.jpg",
+          "https://i.postimg.cc/SQzjHSGJ/Full2.jpg",
+          "https://i.postimg.cc/1RN4bmKg/Full3.jpg"
+        ]
+      },
+      { 
+        id: 4, 
+        code: "GOR-004", 
+        name: "Gorra Mission Hydroactive Cooling", 
+        price: 150, 
+        category: "gorras", 
+        sizes: ["S","M","L"],
+        specs: {
+          material: "Tecnología de Refrigeración",
+          uv: "UPF 50+",
+          peso: "230g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/13W9f2HS/Missi1.jpg",
+          "https://i.postimg.cc/Qd6XHwbG/Missi2.jpg",
+          "https://i.postimg.cc/7ZBxfdNB/Missi3.jpg",
+          "https://i.postimg.cc/9QzBCQH1/Mission.jpg"
+        ]
+      },
+      { 
+        id: 5, 
+        code: "GOR-005", 
+        name: "Gorra Sprints HyperG", 
+        price: 180, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "100% polyester",
+          uv: "UPF+",
+          peso: "160g",
+          uso: "Running"
+        },
+        images: [
+          "https://i.postimg.cc/FsY20Xqm/Sprint1.jpg",
+          "https://i.postimg.cc/Gh4ZvnNR/Sprint2.jpg",
+          "https://i.postimg.cc/tCsLFGf9/Sprint3.jpg"
+        ]
+      },
+      { 
+        id: 6, 
+        code: "GOR-006", 
+        name: "Gorra Running K2", 
+        price: 120, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "100% Nylon",
+          uv: "UPF+",
+          peso: "74,4g",
+          uso: "Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/9Frb6qnt/kk1.jpg",
+          "https://i.postimg.cc/02s3kmV6/k3.jpg",
+          "https://i.postimg.cc/0ySfQ1xZ/kk2.jpg",
+          "https://i.postimg.cc/gkW5zRgL/k6.jpg",
+          "https://i.postimg.cc/Prpb3nC6/kk3.jpg"
+        ]
+      },
+      { 
+        id: 7, 
+        code: "GOR-007", 
+        name: "Gorra Eddie Bauer", 
+        price: 200, 
+        category: "gorras", 
+        sizes: ["S", "M", "L"],
+        specs: {
+          material: "100% Poliester",
+          uv: "UPF+",
+          peso: "160g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/bv8QwGmq/Eddi1.jpg",
+          "https://i.postimg.cc/nLZvhs3t/Eddi2.jpg",
+          "https://i.postimg.cc/Pqhm5LSH/Eddi3.jpg"
+        ]
+      },
+      { 
+        id: 8, 
+        code: "GOR-008", 
+        name: "Gorra Karrimor", 
+        price: 160, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "100% Polyester - Nylon",
+          uv: "UPF+",
+          peso: "?g",
+          uso: "Trekking / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/76t79KDQ/Karri1.jpg",
+          "https://i.postimg.cc/76t79KDd/Karri2.jpg",
+          "https://i.postimg.cc/MT3R59xL/Karri3.jpg"
+        ]
+      },
+      { 
+        id: 9, 
+        code: "GOR-009", 
+        name: "Gorra Merrel", 
+        price: 160, 
+        category: "gorras", 
+        sizes: ["M", "L"],
+        specs: {
+          material: "Ligero - Impermeable",
+          uv: "UPF 40+",
+          peso: "?g",
+          uso: "Running / Deportes"
+        },
+        images: [
+          "https://i.postimg.cc/vmQVdJZq/Merre1.jpg",
+          "https://i.postimg.cc/Dz2XK9wY/Merre2.jpg",
+          "https://i.postimg.cc/k5nbd0gY/Merre3.jpg"
+        ]
+      },
+      { 
+        id: 10, 
+        code: "GOR-010", 
+        name: "Gorra Kolon Sport", 
+        price: 100, 
+        category: "gorras", 
+        sizes: ["S"],
+        specs: {
+          material: "100% poliéster",
+          uv: "UPF+",
+          peso: "160g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/4yrcknY6/Kolo1.jpg",
+          "https://i.postimg.cc/Fz2S51Y0/Kolo2.jpg",
+          "https://i.postimg.cc/7hpz8b5V/Kolo3.jpg"
+        ]
+      },
+      { 
+        id: 11, 
+        code: "GOR-011", 
+        name: "Gorra Slazenger", 
+        price: 150, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "100% Polyester - Nylon",
+          uv: "UPF+",
+          peso: "?g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/bwFsKs4F/Slaz1.jpg",
+          "https://i.postimg.cc/BvLXsJGC/Slaz2.jpg",
+          "https://i.postimg.cc/tgZYy9H5/Slaz3.jpg"
+        ]
+      },
+      { 
+        id: 12, 
+        code: "GOR-012",
+        name: "Gorra REI Co-op", 
+        price: 160, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "100% Polyester - Nylon",
+          uv: "UPF+",
+          peso: "?g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/YCSvn1Dv/Rei1.jpg",
+          "https://i.postimg.cc/sg2M6pHB/Rei2.jpg",
+          "https://i.postimg.cc/P5qC3mVp/Rei3.jpg"
+        ]
+      },
+      { 
+        id: 13, 
+        code: "GOR-013",
+        name: "Gorra Running Plush", 
+        price: 100, 
+        category: "gorras", 
+        sizes: ["M", "L"],
+        specs: {
+          material: "Ligera Respirable, Vicera flexible",
+          uv: "UPF+",
+          peso: "?g",
+          uso: "Running"
+        },
+        images: [
+          "https://i.postimg.cc/90G92CyC/Plus1.jpg",
+          "https://i.postimg.cc/tJh6bpFq/Plus2.jpg",
+          "https://i.postimg.cc/rsS4TM5F/Plus3.jpg"
+        ]
+      },
+      { 
+        id: 14, 
+        code: "GOR-014",
+        name: "Gorra Westwood", 
+        price: 120, 
+        category: "gorras", 
+        sizes: ["L"],
+        specs: {
+          material: "100% Polyester",
+          uv: "UPF+",
+          peso: "??g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/g0Cr21zF/West1.jpg",
+          "https://i.postimg.cc/1zk43bms/West2.jpg",
+          "https://i.postimg.cc/SKBjxHSm/West3.jpg"
+        ]
+      },
+      { 
+        id: 15, 
+        code: "GOR-015",
+        name: "Gorra Running K2", 
+        price: 80,              //Precio final con descuento
+        originalPrice: 100,    //Precio oiriginal sin descuento
+        discount:20,           //Porcentaje de descuento(20% OFF)
+        category: "gorras",
+        sizes: ["L"],
+        specs: {
+          material: "100% Polyester - Nylon",
+          uv: "UPF+",
+          peso: "??g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/mZNhTd0k/Kv1.jpg",
+          "https://i.postimg.cc/gcqrGMfc/Kv2.jpg",
+          "https://i.postimg.cc/PfzNd6Bp/Kv3.jpg"
+        ]
+      },
+      { 
+        id: 16, 
+        code: "GOR-016",
+        name: "Gorra Running", 
+        price: 60, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "Algodón Respirable",
+          uv: "UPF+",
+          peso: "??g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/WzX2gyvq/neg1.jpg",
+          "https://i.postimg.cc/C5mFk2gR/Neg2.jpg",
+          "https://i.postimg.cc/5ynxLrVw/Neg3.jpg"
+        ]
+      },
+      { 
+        id: 17, 
+        code: "GOR-017",
+        name: "Gorra OR (Outdoor Research)", 
+        price: 80, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "Nailon, fácil de guardar en el bolsillo",
+          uv: "UPF 30+",
+          peso: "70g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/Qt8w1dxz/IMG-20260903-002706-967-jpg.jpg",
+          "https://i.postimg.cc/TwdFg3YB/IMG-20260903-002732-065-jpg.jpg",
+          "https://i.postimg.cc/mDLJCggW/IMG-20260903-002806-346-jpg.jpg",
+          "https://i.postimg.cc/yd1tc88z/IMG-20260903-002840-883-jpg.jpg"
+        ]
+      },
+      { 
+        id: 18, 
+        code: "GOR-018",
+        name: "Gorra Running OR (Outdoor Research)", 
+        price: 90, 
+        category: "gorras", 
+        sizes: ["S"],
+        specs: {
+          material: "100% Polyester - 60% Nylon, secado rápido",
+          uv: "UPF 40+",
+          peso: "71g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/pdx6MLjg/Ornara1.jpg",
+          "https://i.postimg.cc/hGg5RtxB/Ornara2.jpg",
+          "https://i.postimg.cc/TPG4v3mR/Ornara3.jpg",
+          "https://i.postimg.cc/KYFHh8Lb/Ornara4.jpg"
+        ]
+      },
+      { 
+        id: 19, 
+        code: "GOR-019",
+        name: "Gorra Running OR (Outdoor Research)", 
+        price: 90, 
+        category: "gorras", 
+        sizes: ["Talla Única"],
+        specs: {
+          material: "100% Polyester - Nylon, secado rápido",
+          uv: "UPF 50+",
+          peso: "73g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/Y9PGYjzv/Or1.jpg",
+          "https://i.postimg.cc/1tdnw4rV/Or2.jpg",
+          "https://i.postimg.cc/NMn9mLkX/Or3.jpg"
+        ]
+      },
+      { 
+        id: 20, 
+        code: "GOR-020",
+        name: "Gorra Running OR (Outdoor Research)", 
+        price: 90, 
+        category: "gorras", 
+        sizes: ["Talla Única"],
+        specs: {
+          material: "100% Polyester - Nylon, secado rápido",
+          uv: "UPF 50+",
+          peso: "73g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/5t08zcWn/Orgris1.jpg",
+          "https://i.postimg.cc/zfBThmY7/Orgris2.jpg",
+          "https://i.postimg.cc/NMn9mLkX/Or3.jpg"
+        ]
+      },
+      { 
+        id: 21, 
+        code: "GOR-021",
+        name: "Gorra OR (Outdoor Research)", 
+        price: 90, 
+        category: "gorras", 
+        sizes: ["Talla Única"],
+        specs: {
+          material: "100% Polyester - Nylon, secado rápido",
+          uv: "UPF 50+",
+          peso: "73g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/dQznK0P4/Orazul1.jpg",
+          "https://i.postimg.cc/WpQSP4LS/Orazul2.jpg",
+          "https://i.postimg.cc/c1VTNJyF/Orazul3.jpg"
+        ]
+      },
+      { 
+        id: 22, 
+        code: "GOR-022", 
+        name: "Gorra Ciclista Nuckily", 
+        price: 160, 
+        category: "gorras", 
+        sizes: ["L"],
+        specs: {
+          material: "100% Polyester",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Ciclismo"
+        },
+        images: [
+          "https://i.postimg.cc/0jvsk29M/Cicli01.jpg",
+          "https://i.postimg.cc/7YR8QNjj/Cicli02.jpg",
+          "https://i.postimg.cc/yNXGBhrz/Cicli03.jpg"
+        ]
+      },
+      { 
+        id: 23, 
+        code: "SOM-001", 
+        name: "Sombrero OR (Outdoor Research)", 
+        price: 120, 
+        category: "sombreros", 
+        sizes: ["S", "M"],
+        specs: {
+          material: "Gore-tex (para la lluvia)",
+          uv: "UPF 50+",
+          peso: "78g",
+          uso: "Impermeable, caminata de sol, lluvia"
+        },
+        images: [
+          "https://i.postimg.cc/0jm4qMtP/Orgore1.jpg",
+          "https://i.postimg.cc/90TkjRxV/Orgore2.jpg",
+          "https://i.postimg.cc/Y9TPVfxC/Orgore3.jpg"
+        ]
+      },
+      { 
+        id: 24,
+        code: "SOM-002",
+        name: "Sombrero OR (Outdoor Research)", 
+        price: 120,
+        category: "sombreros", 
+        sizes: ["S"],
+        specs: {
+          material: "Gore-tex (para la lluvia)",
+          uv: "UPF 50+",
+          peso: "78g",
+          uso: "Impermeable, caminata de sol, lluvia"
+        },
+        images: [
+          "https://i.postimg.cc/HswNZMc6/Orgoren1.jpg",
+          "https://i.postimg.cc/TYVs7bLN/Orgoren2.jpg",
+          "https://i.postimg.cc/HswNZMch/Orgoren3.jpg"
+        ]
+      },
+       { 
+        id: 25, 
+        code: "GOR-023", 
+        name: "Gorra 5 Paneles", 
+        price: 120, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "Gamuza, Lana, Polyester",
+          uv: "UPF+",
+          peso: "??g",
+          uso: "Urbano"
+        },
+        images: [
+          "https://i.postimg.cc/xjynNrLM/5pan1.jpg",
+          "https://i.postimg.cc/9XtCw3yw/5pan2.jpg",
+          "https://i.postimg.cc/bYHpSX11/5pan3.jpg",
+          "https://i.postimg.cc/HW4d8Gb0/5pan4.jpg",
+          "https://i.postimg.cc/05dPKg70/5pan5.jpg"
+        ]
+      },
+      { 
+        id: 26, 
+        code: "GOR-024", 
+        name: "Gorra American Eagle", 
+        price: 120, 
+        category: "gorras", 
+        sizes: ["M", "L"],
+        specs: {
+          material: "100% Polyester",
+          uv: "UPF+",
+          peso: "??g",
+          uso: "Running / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/dQWNx4Y6/amer1.jpg",
+          "https://i.postimg.cc/tRrvM2j5/amer2.jpg",
+          "https://i.postimg.cc/L4yQbNpN/amer3.jpg",
+          "https://i.postimg.cc/QN6Yy03Y/amer4.jpg",
+          "https://i.postimg.cc/YqhDKYrn/amer5.jpg"
+        ]
+      },
+      { 
+        id: 27, 
+        code: "GOR-025", 
+        name: "Gorra Black Yak Gore-tex", 
+        price: 150, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "Gore-tex (Para la LLuvia)",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Outdoor / Running"
+        },
+        images: [
+          "https://i.postimg.cc/FHJL4sJY/blac1.jpg",
+          "https://i.postimg.cc/52FCVNFC/blac2.jpg",
+          "https://i.postimg.cc/0yJws2JD/blac3.jpg",
+          "https://i.postimg.cc/K8gM2vgr/blac4.jpg",
+          "https://i.postimg.cc/52FCVNFS/blac5.jpg"
+        ]
+      },
+      { 
+        id: 28, 
+        code: "GOR-026", 
+        name: "Gorra Black Yak", 
+        price: 120, 
+        category: "gorras", 
+        sizes: ["L"],
+        specs: {
+          material: "100% Polyester - Nylon, secado rápido",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/T3XRKR4K/black1.jpg",
+          "https://i.postimg.cc/0yq8z8B6/black2.jpg",
+          "https://i.postimg.cc/x1S0X04c/black3.jpg",
+          "https://i.postimg.cc/XY0VrVzJ/black4.jpg"
+        ]
+      },
+      { 
+        id: 29,
+        code: "GOR-027",
+        name: "Gorra Carhartt",
+        price: 70, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "Malla",
+          uv: "UPF 40+",
+          peso: "??g",
+          uso: "Urbano"
+        },
+        images: [
+          "https://i.postimg.cc/3RPw92ny/carh1.jpg",
+          "https://i.postimg.cc/9M4MGLtG/carh2.jpg",
+          "https://i.postimg.cc/nz6LTq09/carh3.jpg",
+          "https://i.postimg.cc/50H0wsqS/carh4.jpg"
+        ]
+      },
+      { 
+        id: 30,
+        code: "GOR-028",
+        name: "Gorra Ciclista Nuckily",
+        price: 90,
+        category: "gorras",
+        sizes: ["M", "L"],
+        specs: {
+          material: "100% Polyester",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Ciclismo"
+        },
+        images: [
+          "https://i.postimg.cc/135yGWyx/cicli1.jpg",
+          "https://i.postimg.cc/0y29YtPF/cicli2.jpg",
+          "https://i.postimg.cc/NjfQ6NQv/cicli3.jpg",
+          "https://i.postimg.cc/g2kGVMGF/cicli4.jpg"
+        ]
+      },
+      { 
+        id: 31,
+        code: "GOR-029",
+        name: "Gorra New Era",
+        price: 130,
+        category: "gorras",
+        sizes: ["S"],
+        specs: {
+          material: "100% Algodón",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Urbano"
+        },
+        images: [
+          "https://i.postimg.cc/k4PZc4WD/new1.jpg",
+          "https://i.postimg.cc/LXF7TXj5/new2.jpg",
+          "https://i.postimg.cc/cHGjmHfr/new3.jpg",
+          "https://i.postimg.cc/1t1THtD3/new4.jpg"
+        ]
+      },
+      { 
+        id: 32,
+        code: "GOR-030",
+        name: "Gorra Coors Vintage",
+        price: 80,
+        category: "gorras",
+        sizes: ["M"],
+        specs: {
+          material: "Corderoy",
+          uv: "UPF+",
+          peso: "??g",
+          uso: "Urbano"
+        },
+        images: [
+          "https://i.postimg.cc/9f5J3kz2/coor1.jpg",
+          "https://i.postimg.cc/HLDBGNnK/coor2.jpg",
+          "https://i.postimg.cc/g0FN97r9/coor3.jpg",
+          "https://i.postimg.cc/7L8mvRb8/coor4.jpg"
+        ]
+      },
+      { 
+        id: 33, 
+        code: "GOR-031", 
+        name: "Gorra Primal Ciclismo", 
+        price: 90, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "100% Polyester",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Ciclismo"
+        },
+        images: [
+          "https://i.postimg.cc/LXqk0KMs/prim1.jpg",
+          "https://i.postimg.cc/xCkGFDSf/prim2.jpg",
+          "https://i.postimg.cc/k4VNh3d7/prim3.jpg",
+          "https://i.postimg.cc/cHK75yNH/prim4.jpg"
+        ]
+      },
+      { 
+        id: 34, 
+        code: "GOR-032", 
+        name: "Gorra Corderoy Vintage", 
+        price: 80, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "100% Algodón - Corderoy",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Urbano"
+        },
+        images: [
+          "https://i.postimg.cc/jSmSQGvH/golf1.jpg",
+          "https://i.postimg.cc/BnkncdN2/golf2.jpg",
+          "https://i.postimg.cc/wjZjcSFh/golf3.jpg",
+          "https://i.postimg.cc/sgqg9tK4/golf4.jpg",
+          "https://i.postimg.cc/HkRk4f30/golf5.jpg"
+        ]
+      },
+      { 
+        id: 35, 
+        code: "GOR-033", 
+        name: "Gorra Official", 
+        price: 70, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "100% Algodón , Gamuza",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Urbano"
+        },
+        images: [
+          "https://i.postimg.cc/brwPjT3f/off11.jpg",
+          "https://i.postimg.cc/Y0C7w38T/off1.jpg",
+          "https://i.postimg.cc/nzkx55YJ/off2.jpg",
+          "https://i.postimg.cc/C5x0VNJt/off3.jpg",
+          "https://i.postimg.cc/GtmR1Qzf/off4.jpg"
+        ]
+      },
+      { 
+        id: 36,
+        code: "GOR-034", 
+        name: "Gorra Marmot Running", 
+        price: 100, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "100% Polyester",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Runnig"
+        },
+        images: [
+          "https://i.postimg.cc/NGCqHRdj/rojo1.jpg",
+          "https://i.postimg.cc/SQ1FMcgs/rojo2.jpg",
+          "https://i.postimg.cc/2j9RZn05/rojo3.jpg",
+          "https://i.postimg.cc/ZYstd6wn/rojo4.jpg",
+          "https://i.postimg.cc/9Xg57yLR/rojo5.jpg"
+        ]
+      },
+      { 
+        id: 37,
+        code: "GOR-035", 
+        name: "Gorra Vans 5 Paneles", 
+        price: 160, 
+        category: "gorras", 
+        sizes: ["M"],
+        specs: {
+          material: "100% Algodón - Polyester, Cuero",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Urbano"
+        },
+        images: [
+          "https://i.postimg.cc/vmhSddj8/vans1.jpg",
+          "https://i.postimg.cc/VNgHccTk/vans2.jpg",
+          "https://i.postimg.cc/vmhSddjQ/vans3.jpg",
+          "https://i.postimg.cc/MG5r884G/vans4.jpg",
+          "https://i.postimg.cc/JhxdWWgy/vans5.jpg",
+          "https://i.postimg.cc/PqyFkkc8/vans6.jpg"
+        ]
+      },
+      { 
+        id: 38,
+        code: "GOR-036",
+        name: "Gorra United by Blue 5 Paneles",
+        price: 100,
+        category: "gorras",
+        sizes: ["M"],
+        specs: {
+          material: "4% Polyester - 60% Agodón, Franela",
+          uv: "UPF 50+",
+          peso: "??g",
+          uso: "Urbano"
+        },
+        images: [
+          "https://i.postimg.cc/XNBS9pmD/v1.jpg",
+          "https://i.postimg.cc/BZP92XkY/v2.jpg",
+          "https://i.postimg.cc/59Qd86Th/v3.jpg",
+          "https://i.postimg.cc/NG2qR5Zh/v4.jpg",
+          "https://i.postimg.cc/MZf21vNh/v5.jpg"
+        ]
+      },
+      { 
+        id: 39, 
+        code: "SOM-003", 
+        name: "Sombrero Columbia", 
+        price: 180, 
+        category: "sombreros", 
+        sizes: ["M", "L"],
+        specs: {
+          material: "100% popelina de nailon, antisudor, secado rápido",
+          uv: "UPF 50+",
+          peso: "10g",
+          uso: "Trekking / senderismo"
+        },
+        images: [
+          "https://i.postimg.cc/L6kWVfTk/colum1.jpg",
+          "https://i.postimg.cc/SNLPG8rD/colum2.jpg",
+          "https://i.postimg.cc/vH7Kv9zh/colum3.jpg",
+          "https://i.postimg.cc/bN05RbTW/colum4.jpg",
+          "https://i.postimg.cc/Jz12Yn6v/colum5.jpg"
+        ]
+      },
+      { 
+        id: 40, 
+        code: "SOM-004", 
+        name: "Sombrero Discovery", 
+        price: 120, 
+        category: "sombreros", 
+        sizes: ["M", "L"],
+        specs: {
+          material: "100% popelina de nailon",
+          uv: "UPF 50+",
+          peso: "20g",
+          uso: "Trekking / Pescador"
+        },
+        images: [
+          "https://i.postimg.cc/m2VwDSV4/disco1.jpg",
+          "https://i.postimg.cc/bNLTJRLj/disco2.jpg",
+          "https://i.postimg.cc/Bn6C11wW/disco3.jpg",
+          "https://i.postimg.cc/hPMrj0Mt/disco4.jpg",
+          "https://i.postimg.cc/wjvkssbg/disco5.jpg"
+        ]
+      },
+      { 
+        id: 41, 
+        code: "SOM-005", 
+        name: "Sombrero Eider", 
+        price: 100, 
+        category: "sombreros", 
+        sizes: ["S"],
+        specs: {
+          material: "Impermeable",
+          uv: "UPF 50+",
+          peso: "10g",
+          uso: "Trekking/Caminata"
+        },
+        images: [
+          "https://i.postimg.cc/jSmyw373/eider1.jpg",
+          "https://i.postimg.cc/ht6VzZdY/eider2.jpg",
+          "https://i.postimg.cc/9QKyRg7N/eider3.jpg",
+          "https://i.postimg.cc/T3FnLND4/eider4.jpg"
+        ]
+      },
+      { 
+        id: 42,
+        code: "SOM-006", 
+        name: "Sombrero K2", 
+        price: 160, 
+        category: "sombreros", 
+        sizes: ["L"],
+        specs: {
+          material: "Gore-tex Para la lluvia)",
+          uv: "UPF 50+",
+          peso: "10g",
+          uso: "Senderismo"
+        },
+        images: [
+          "https://i.postimg.cc/QxM76Zgg/k1.jpg",
+          "https://i.postimg.cc/jdjf8Y6M/k2.jpg",
+          "https://i.postimg.cc/TYPbkvq8/k3.jpg",
+          "https://i.postimg.cc/bNvn6f05/k4.jpg"
+        ]
+      },
+      { 
+        id: 43,
+        code: "SOM-007", 
+        name: "Bucket hat Kolon Sport", 
+        price: 160, 
+        category: "sombreros", 
+        sizes: ["M"],
+        specs: {
+          material: "Algodón",
+          uv: "UPF 50+",
+          peso: "",
+          uso: "Trekking/Caminata en la ciudad"
+        },
+        images: [
+          "https://i.postimg.cc/5NZt8hsX/kolon1.jpg",
+          "https://i.postimg.cc/c4VJfpFY/kolon2.jpg",
+          "https://i.postimg.cc/SNwKcBgz/kolon3.jpg",
+          "https://i.postimg.cc/BQdv2rmP/kolon4.jpg",
+          "https://i.postimg.cc/XYdYLsPD/kolon5.jpg",
+          "https://i.postimg.cc/zGKG7xM5/kolon6.jpg"
+        ]
+      },
+      { 
+        id: 44,
+        code: "SOM-008", 
+        name: "Sombrero Rei Co-op", 
+        price: 130, 
+        category: "sombreros", 
+        sizes: ["L", "XL"],
+        specs: {
+          material: "100% Nylon, Polyester Barra para sudor",
+          uv: "UPF 50+",
+          peso: "10g",
+          uso: "Trekking"
+        },
+        images: [
+          "https://i.postimg.cc/G2G0wfkK/rei1.jpg",
+          "https://i.postimg.cc/DZLVkNqC/rei2.jpg",
+          "https://i.postimg.cc/wvLK8rhf/rei3.jpg"
+        ]
+      },
+      { 
+        id: 45,
+        code: "SOM-009",
+        name: "Sombrero Mission camuflado",
+        price: 110,
+        category: "sombreros",
+        sizes: ["M", "L"],
+        specs: {
+          material: "100% Polyester, Hidroactive",
+          uv: "UPF 50+",
+          peso: "10g",
+          uso: "Trekking"
+        },
+        images: [
+          "https://i.postimg.cc/nzYd1fKD/Missi1.jpg",
+          "https://i.postimg.cc/tTtrzGdV/Missi2.jpg",
+          "https://i.postimg.cc/C1Hv4pCk/Missi3.jpg",
+          "https://i.postimg.cc/0QdtC1Gm/Missi4.jpg"
+        ]
+      },
+      { 
+        id: 46,
+        code: "SOM-010",
+        name: "Sombrero Mission",
+        price: 150,
+        category: "sombreros",
+        sizes: ["M", "L"],
+        specs: {
+          material: "100% Polyester, Hidroactive",
+          uv: "UPF 50+",
+          peso: "10g",
+          uso: "Trekking"
+        },
+        images: [
+          "https://i.postimg.cc/B6MT6Scj/misss1.jpg",
+          "https://i.postimg.cc/ydvmd1XR/misss2.jpg",
+          "https://i.postimg.cc/nz04zFY7/misss3.jpg",
+          "https://i.postimg.cc/sXwYXj9p/misss4.jpg"
+        ]
+      },
+      { 
+        id: 47,
+        code: "SOM-011",
+        name: "Sombrero Nepa (Niños)",
+        price: 90,
+        category: "sombreros",
+        sizes: ["S"],
+        specs: {
+          material: "100% Nylon, Polyester",
+          uv: "UPF 50+",
+          peso: "320g",
+          uso: "Trekking/caminata"
+        },
+        images: [
+          "https://i.postimg.cc/nLTjKdjF/nepa1.jpg",
+          "https://i.postimg.cc/9MM4LGZC/nepa2.jpg",
+          "https://i.postimg.cc/V66SKjnz/nepa3.jpg",
+          "https://i.postimg.cc/855FZhMp/nepa4.jpg",
+          "https://i.postimg.cc/9MM4LGZM/nepa5.jpg"
+        ]
+      },
+      { 
+        id: 48,
+        code: "SOM-012",
+        name: "Sombrero Nepa",
+        price: 110,
+        category: "sombreros",
+        sizes: ["M", "L"],
+        specs: {
+          material: "100% Nylon, Polyester",
+          uv: "UPF 50+",
+          peso: "10g",
+          uso: "Trekking"
+        },
+        images: [
+          "https://i.postimg.cc/d0WRQQ9H/nepagris1.jpg",
+          "https://i.postimg.cc/DZ8rSVCQ/nepagris2.jpg",
+          "https://i.postimg.cc/XJpfrM2P/nepagris3.jpg",
+          "https://i.postimg.cc/W3hGdR9S/nepagris4.jpg"
+        ]
+      },
+      { 
+        id: 49,
+        code: "SOM-013",
+        name: "Sombrero Nepa",
+        price: 110,
+        category: "sombreros",
+        sizes: ["M", "L"],
+        specs: {
+          material: "100% Polyester",
+          uv: "UPF 50+",
+          peso: "10g",
+          uso: "Trekking"
+        },
+        images: [
+          "https://i.postimg.cc/K8j8SZRm/neparojo1.jpg",
+          "https://i.postimg.cc/K8j8SZRv/neparojo2.jpg",
+          "https://i.postimg.cc/x1ZT9WzS/neparojo3.jpg",
+          "https://i.postimg.cc/g27kGfZz/neparojo4.jpg",
+          "https://i.postimg.cc/13d5yLq4/neparojo5.jpg"
+        ]
+      },
+      { 
+        id: 50,
+        code: "SOM-014",
+        name: "Sombrero Marmot (Impermeable)",
+        price: 160,
+        category: "sombreros",
+        sizes: ["XL", "XXL"],
+        specs: {
+          material: "100% Nylon - Polyester, Iman alos lados",
+          uv: "UPF 50+",
+          peso: "86g",
+          uso: "Trekking / Para la lluvia"
+        },
+        images: [
+          "https://i.postimg.cc/pVkv2gw0/marm1.jpg",
+          "https://i.postimg.cc/fW5sw6Gg/marm2.jpg",
+          "https://i.postimg.cc/RhPxXH11/marm3.jpg",
+          "https://i.postimg.cc/v8XyQpJq/marm4.jpg",
+          "https://i.postimg.cc/v8XyQpJC/marm5.jpg",
+          "https://i.postimg.cc/PfKHtgGG/marm6.jpg"
+        ]
+      },
+      { 
+        id: 51,
+        code: "SOM-015",
+        name: "Sombrero Marmot",
+        price: 120,
+        category: "sombreros",
+        sizes: ["M", "L", "XL"],
+        specs: {
+          material: "Gore-tex",
+          uv: "UPF 50+",
+          peso: "320g",
+          uso: "Trekking de Montaña"
+        },
+        images: [
+          "https://i.postimg.cc/L6hcmhB5/marmo1.jpg",
+          "https://i.postimg.cc/hPhkKhbj/marmo2.jpg",
+          "https://i.postimg.cc/xTqw9qyX/marmo3.jpg"
+        ]
+      },
+      { 
+        id: 52,
+        code: "SOM-016",
+        name: "Sombrero Mission",
+        price: 120,
+        category: "sombreros",
+        sizes: ["M", "L"],
+        specs: {
+          material: "100% Polyester, Hidroactive",
+          uv: "UPF 50+",
+          peso: "10g",
+          uso: "Trekking/Running"
+        },
+        images: [
+          "https://i.postimg.cc/1t5WMYv2/missio1.jpg",
+          "https://i.postimg.cc/zBtxQSQc/missio2.jpg",
+          "https://i.postimg.cc/rmnfHCHY/missio3.jpg",
+          "https://i.postimg.cc/0QWV4d4t/missio4.jpg"
+        ]
+      },
+      { 
+        id: 53,
+        code: "SOM-017",
+        name: "Sombrero OR (Gore-tex)",
+        price: 150,
+        category: "sombreros",
+        sizes: ["M"],
+        specs: {
+          material: "Gore-tex (para la lluvia)",
+          uv: "UPF 50+",
+          peso: "90.72g",
+          uso: "Trekking"
+        },
+        images: [
+          "https://i.postimg.cc/kMVrmByb/orr1.jpg",
+          "https://i.postimg.cc/xjkr2cPk/orr2.jpg",
+          "https://i.postimg.cc/CMZygz4b/orr3.jpg",
+          "https://i.postimg.cc/VsSy8dFn/orr4.jpg",
+          "https://i.postimg.cc/9X43hrBJ/orr5.jpg"
+        ]
+      },
+      { 
+        id: 54,
+        code: "SOM-018",
+        name: "Sombrero OR (Gore-tex)",
+        price: 120,
+        category: "sombreros",
+        sizes: ["M"],
+        specs: {
+          material: "Gore-tex, para la lluvia",
+          uv: "UPF 50+",
+          peso: "90.72g",
+          uso: "Trekking"
+        },
+        images: [
+          "https://i.postimg.cc/RFNY4Dwt/or1.jpg",
+          "https://i.postimg.cc/76fRwWSG/oe2.jpg",
+          "https://i.postimg.cc/FR8BRVxc/or3.jpg",
+          "https://i.postimg.cc/RFyDFLT3/or4.jpg",
+          "https://i.postimg.cc/vBkNBtv0/or5.jpg"
+        ]
+      },
+      {
+        id: 55, 
+        code: "PLR-001", 
+        name: "Cinturón Arc'teryx", 
+        price: 370, 
+        category: "varios", 
+        sizes: ["L"],
+        specs: {
+          material: "Hebilla de Metal, 100% Naylon",
+          uv: "N/A",
+          peso: "??g",
+          uso: "Urbano / Outdoor"
+        },
+        images: [
+          "https://i.postimg.cc/5y8pVgww/arc2.jpg",
+          "https://i.postimg.cc/Zn6jSHrP/arc3.jpg",
+          "https://i.postimg.cc/br1LhgQn/arc4.jpg",
+          "https://i.postimg.cc/sx5KrmpY/arc5.jpg"
+        ]
+      }
+    ];
+
+    let cart = [];
+    let currentCategory = "todos";
+    let currentModalProductId = null;
+    let currentModalImgIndex = 0;
+
+    // Lógica del botón Limpiar (X) en el buscador
+    function toggleClearButton() {
+      const input = document.getElementById("search-input");
+      const clearBtn = document.getElementById("clear-search-btn");
+      if (input.value.trim().length > 0) {
+        clearBtn.classList.remove("hidden");
+        clearBtn.classList.add("flex");
+      } else {
+        clearBtn.classList.add("hidden");
+        clearBtn.classList.remove("flex");
+      }
+    }
+
+    function clearSearch() {
+      const input = document.getElementById("search-input");
+      input.value = "";
+      toggleClearButton();
+      filterProducts();
+      input.focus();
+    }
+
+    // Abrir y cerrar modal Guía de Tallas
+    function openSizeGuide() {
+      document.getElementById("size-guide-modal").classList.remove("hidden");
+    }
+
+    function closeSizeGuide() {
+      document.getElementById("size-guide-modal").classList.add("hidden");
+    }
+
+    // Toggle de la Ficha Técnica Desplegable
+    function toggleSpecs(productId) {
+      const specBox = document.getElementById(`specs-${productId}`);
+      specBox.classList.toggle("hidden");
+    }
+
+    // Filtros y Búsqueda
+    function filterProducts() {
+      const query = document.getElementById("search-input").value.toLowerCase();
+      const filtered = products.filter(p => {
+        const matchesCategory = currentCategory === "todos" || p.category === currentCategory;
+        const matchesSearch = p.name.toLowerCase().includes(query) || p.code.toLowerCase().includes(query);
+        return matchesCategory && matchesSearch;
+      });
+      renderProducts(filtered);
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      filterProducts();
+    }
+
+    // Funciones del Modal de Vista Previa con Navegación
+    function openImageModal(productId) {
+      const prod = products.find(p => p.id === productId);
+      if (!prod) return;
+
+      currentModalProductId = productId;
+      
+      // Encontrar el índice de la foto que se está mostrando actualmente
+      const currentSrc = document.getElementById(`main-img-${productId}`).src;
+      const index = prod.images.findIndex(img => currentSrc.includes(img) || img.includes(currentSrc));
+      currentModalImgIndex = index >= 0 ? index : 0;
+
+      updateModalImage();
+      document.getElementById("image-modal").classList.remove("hidden");
+    }
+
+    function updateModalImage() {
+      const prod = products.find(p => p.id === currentModalProductId);
+      if (prod && prod.images[currentModalImgIndex]) {
+        document.getElementById("modal-image").src = prod.images[currentModalImgIndex];
+      }
+    }
+
+    function nextModalImage() {
+      const prod = products.find(p => p.id === currentModalProductId);
+      if (!prod) return;
+      currentModalImgIndex = (currentModalImgIndex + 1) % prod.images.length;
+      updateModalImage();
+    }
+
+    function prevModalImage() {
+      const prod = products.find(p => p.id === currentModalProductId);
+      if (!prod) return;
+      currentModalImgIndex = (currentModalImgIndex - 1 + prod.images.length) % prod.images.length;
+      updateModalImage();
+    }
+
+    function closeImageModal() {
+      document.getElementById("image-modal").classList.add("hidden");
+    }
+
+    // Soporte para gestos Swipe en celulares Android
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    const modalElement = document.getElementById("image-modal");
+    modalElement.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, false);
+
+    modalElement.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX < touchStartX - 50) nextModalImage();
+      if (touchEndX > touchStartX + 50) prevModalImage();
+    }, false);
+
+    // Cambiar la imagen principal al hacer clic en una miniatura
+    function changeMainImage(productId, imgUrl) {
+      document.getElementById(`main-img-${productId}`).src = imgUrl;
+    }
+
+    // Renderizar productos con ficha técnica y guía de tallas
+    function renderProducts(items) {
+      const grid = document.getElementById("product-grid");
+      if (items.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">No se encontraron productos que coincidan.</div>`;
+        return;
+      }
+
+      grid.innerHTML = items.map(p => {
+        // Verificar si el producto tiene descuento activo
+        const hasDiscount = p.discount && p.originalPrice;
+
+        return `
+          <div class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col justify-between border">
+            <div>
+              <div class="relative group cursor-pointer" onclick="openImageModal(${p.id})">
+                <img id="main-img-${p.id}" src="${p.images[0]}" alt="${p.name}" class="w-full h-64 object-cover transition-all duration-300 group-hover:opacity-90">
+            
+                <span class="absolute top-2 left-2 bg-black text-white text-xs font-mono px-2 py-1 rounded">
+                  Cód: ${p.code}
+                </span>
+
+                <!-- Badge de Descuento (Esquina superior derecha) -->
+                ${hasDiscount ? `
+                  <span class="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md uppercase">
+                    ${p.discount}% OFF
+                  </span>
+                ` : ''}
+
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black bg-opacity-20 text-white font-bold text-sm gap-2">
+                  <i class="fas fa-search-plus"></i> Ampliar
+                </div>
+              </div>
+
+              <!-- Reemplaza la sección del mapa de imágenes pequeñas por este bloque -->
+              <div class="relative flex items-center group my-2">
+                <!-- Flecha Izquierda -->
+                <button 
+                  onclick="this.nextElementSibling.scrollBy({left: -80, behavior: 'smooth'})" 
+                  class="absolute left-0 z-10 bg-black/60 text-white rounded-r p-1 text-xs hidden group-hover:block md:block shadow-md">
+                  &#10094;
+                </button>
+
+                <!-- Contenedor con Scroll Táctil / Deslizable -->
+                <div class="flex gap-1 overflow-x-auto scrollbar-none scroll-smooth px-1 py-1 w-full snap-x">
+                  ${p.images.map((img, i) => `
+                    <img 
+                      src="${img}" 
+                      alt="thumb" 
+                      onclick="changeMainImage(${p.id}, '${img}')"
+                      class="w-10 h-10 object-cover rounded border cursor-pointer flex-shrink-0 snap-start hover:border-[#0b6643] transition-all"
+                    >
+                  `).join('')}
+                </div>
+
+                <!-- Flecha Derecha -->
+                <button 
+                  onclick="this.previousElementSibling.scrollBy({left: 80, behavior: 'smooth'})" 
+                  class="absolute right-0 z-10 bg-black/60 text-white rounded-l p-1 text-xs hidden group-hover:block md:block shadow-md">
+                  &#10095;
+                </button>
+              </div>
+            </div>
+
+            <div class="p-4 flex flex-col flex-grow justify-between">
+              <div>
+                <h3 class="font-semibold text-gray-900 text-base">${p.name}</h3>
+            
+                <!-- Bloque de Precios (Normal o con Descuento) --> 
+                <div class="mt-1 flex items-center gap-2">
+                  ${hasDiscount ? `
+                    <span class="text-red-600 font-bold text-lg">Bs.${p.price}</span>
+                    <span class="text-gray-400 text-sm line-through">Bs.${p.originalPrice}</span>
+                  ` : `
+                    <span class="text-gray-900 font-bold text-lg">Bs.${p.price}</span>
+                  `}
+                </div>
+            
+                <!-- Talla con Botón Guía -->
+                <div class="mt-3">
+                  <div class="flex justify-between items-center mb-1">
+                    <label class="text-xs font-semibold text-gray-500 uppercase">Talla:</label>
+                    <button onclick="openSizeGuide()" class="text-[11px] text-[#0b6643] hover:underline font-medium flex items-center gap-1">
+                      <i class="fas fa-ruler-horizontal"></i> Guía de tallas
+                    </button>
+                  </div>
+                  <select id="size-select-${p.id}" class="w-full border rounded-lg p-2 text-sm bg-gray-50 focus:outline-none focus:border-black">
+                    ${p.sizes.map(size => `<option value="${size}">${size}</option>`).join('')}
+                  </select>
+                </div>
+
+                <!-- Ficha Técnica Desplegable -->
+                <div class="mt-3 border-t pt-2">
+                  <button onclick="toggleSpecs(${p.id})" class="text-xs font-semibold text-gray-600 hover:text-black flex items-center justify-between w-full py-1">
+                    <span><i class="fas fa-list-ul mr-1"></i> Especificaciones técnicas</span>
+                    <i class="fas fa-chevron-down text-[10px]"></i>
+                  </button>
+                  <div id="specs-${p.id}" class="hidden mt-2 p-2.5 bg-gray-50 rounded-lg text-xs space-y-1 text-gray-600 border">
+                    <p><strong>Material:</strong> ${p.specs.material}</p>
+                    <p><strong>Protección UV:</strong> ${p.specs.uv}</p>
+                    <p><strong>Peso aprox:</strong> ${p.specs.peso}</p>
+                    <p><strong>Uso ideal:</strong> ${p.specs.uso}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Accion -->
+              <div class="mt-4 space-y-2">
+                <button onclick="sendDirectWhatsApp(${p.id})" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition">
+                  <i class="fab fa-whatsapp"></i> Pedir directo
+                </button>
+                <button onclick="addToCart(${p.id})" class="w-full bg-black hover:bg-gray-800 text-white py-2 rounded-lg text-sm font-medium transition">
+                  Agregar al carrito
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Pedido directo por producto
+    function sendDirectWhatsApp(productId) {
+      const prod = products.find(p => p.id === productId);
+      const selectedSize = document.getElementById(`size-select-${productId}`).value;
+
+      const hasDiscount = prod.discount && prod.originalPrice;
+      const priceInfo = hasDiscount
+        ? `Bs.${prod.price} (Oferta ${prod.discount}% OFF - Precio normal: Bs.${prod.originalPrice})`
+        : `Bs.${prod.price}`;
+
+      const message = `Hola Trekkinero! Me interesa comprar el siguiente producto:\n\n` +
+                      `• *Código:* ${prod.code}\n` +
+                      `• *Producto:* ${prod.name}\n` +
+                      `• *Talla:* ${selectedSize}\n` +
+                      `• *Precio:* Bs.${priceInfo}\n\n` +
+                      `¿Tienen disponibilidad?`;
+      
+      const url = `https://wa.me/${59168773185}?text=${encodeURIComponent(message)}`;
+      window.open(url, "_blank");
+    }
+
+    // Gestión del Carrito
+    function addToCart(productId) {
+      const prod = products.find(p => p.id === productId);
+      const selectedSize = document.getElementById(`size-select-${productId}`).value;
+
+      const cartIndex = cart.findIndex(item => item.id === productId && item.selectedSize === selectedSize);
+
+      if (cartIndex > -1) {
+        cart[cartIndex].quantity++;
+      } else {
+        cart.push({ ...prod, selectedSize, quantity: 1 });
+      }
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const container = document.getElementById("cart-items");
+      const count = document.getElementById("cart-count");
+      const total = document.getElementById("cart-total");
+
+      count.textContent = cart.reduce((sum, p) => sum + p.quantity, 0);
+      const sumTotal = cart.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+      total.textContent = `Bs.${sumTotal}`;
+
+      container.innerHTML = cart.map((p, index) => `
+        <div class="flex items-center gap-3 border-b pb-2">
+          <!-- Imagen añadida del producto -->
+          <img src="${p.images[0]}" alt="${p.name}" class="w-12 h-12 object-cover rounded-md border flex-shrink-0">
+          
+          <div class="flex-grow">
+            <h4 class="font-semibold text-sm line-clamp-1">${p.name}</h4>
+            <span class="text-xs font-mono text-gray-500">Cód: ${p.code} | Talla: <b>${p.selectedSize}</b></span>
+            <p class="text-xs text-gray-500">Bs.${p.price} x ${p.quantity}</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm">Bs.${p.price * p.quantity}</span>
+            <button onclick="removeFromCart(${index})" class="text-red-500 text-sm ml-1">&times;</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCartUI();
+    }
+
+    function toggleCart() {
+      document.getElementById("cart-modal").classList.toggle("hidden");
+    }
+
+    // Enviar pedido completo del carrito por WhatsApp
+    function sendCartWhatsApp() {
+      if (cart.length === 0) return alert("Tu carrito está vacío");
+
+      let message = "Hola Trekkinero! Quisiera realizar el siguiente pedido:\n\n";
+      cart.forEach(p => {
+        message += `• [${p.code}] ${p.name} (Talla: ${p.selectedSize}) x${p.quantity} - Bs.${p.price * p.quantity}\n`;
+      });
+      
+      const total = cart.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+      message += `\n*Total a pagar:* Bs.${total}`;
+
+      const url = `https://wa.me/${59168773185}?text=${encodeURIComponent(message)}`;
+      window.open(url, "_blank");
+    }
+
+    // Inicializar el catálogo
+    renderProducts(products);
+  </script>
+</body>
+</html>

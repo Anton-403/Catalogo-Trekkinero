@@ -1529,12 +1529,12 @@
         ? `Bs.${prod.price} (Oferta ${prod.discount}% OFF - Precio normal: Bs.${prod.originalPrice})`
         : `Bs.${prod.price}`;
 
-      const message = `Hola Trekkinero! Me interesa comprar el siguiente producto:\n\n` +
+      const message = `*Hola Trekkinero!* Me interesa comprar el siguiente producto:\n\n` +
                       `• *Código:* ${prod.code}\n` +
                       `• *Producto:* ${prod.name}\n` +
                       `• *Talla:* ${selectedSize}\n` +
                       `• *Precio:* Bs.${priceInfo}\n\n` +
-                      `¿Tienen disponibilidad?`;
+                      `¿Aún está disponible?`;
       
       const url = `https://wa.me/${59168773185}?text=${encodeURIComponent(message)}`;
       window.open(url, "_blank");

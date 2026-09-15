@@ -182,8 +182,9 @@
         id: 1, 
         code: "GOR-001", 
         name: "Gorra Buff Run R-Jayla Multi", 
-        price: 250, 
-        category: "gorras", 
+        price: 250,
+        category: "gorras",
+        sold: true, //<-- AÑADIR ESTO PARA MARCAR COMO VENDIDO
         sizes: ["M"],
         specs: {
           material: "92% polyester; 8% elastane",
@@ -259,8 +260,9 @@
         id: 5, 
         code: "GOR-005", 
         name: "Gorra Sprints HyperG", 
-        price: 180, 
-        category: "gorras", 
+        price: 180,
+        category: "gorras",
+        sold: true,
         sizes: ["M"],
         specs: {
           material: "100% polyester",
@@ -356,8 +358,9 @@
         id: 10, 
         code: "GOR-010", 
         name: "Gorra Kolon Sport", 
-        price: 100, 
-        category: "gorras", 
+        price: 100,
+        category: "gorras",
+        sold: true,
         sizes: ["S"],
         specs: {
           material: "100% poliéster",
@@ -1079,6 +1082,7 @@
         name: "Sombrero Mission",
         price: 150,
         category: "sombreros",
+        sold: true,
         sizes: ["M", "L"],
         specs: {
           material: "100% Polyester, Hidroactive",
@@ -1183,6 +1187,7 @@
         name: "Sombrero Marmot",
         price: 120,
         category: "sombreros",
+        sold: true,
         sizes: ["M", "L", "XL"],
         specs: {
           material: "Gore-tex",
@@ -1407,22 +1412,23 @@
       }
 
       grid.innerHTML = items.map(p => {
-        // Verificar si el producto tiene descuento activo
+      // Verificar si el producto está vendido o tiene descuento activo
+        const isSold = p.sold === true;
         const hasDiscount = p.discount && p.originalPrice;
 
         return `
-          <div class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col justify-between border">
+          <div class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col justify-between border ${isSold ? 'opacity-80' : ''}">
             <div>
               <div class="relative group cursor-pointer" onclick="openImageModal(${p.id})">
                 <img id="main-img-${p.id}" src="${p.images[0]}" alt="${p.name}" class="w-full h-64 object-cover transition-all duration-300 group-hover:opacity-90">
-            
-                <span class="absolute top-2 left-2 bg-black text-white text-xs font-mono px-2 py-1 rounded">
+        
+                <span class="absolute top-2 left-2 bg-black text-white text-xs font-mono px-2 py-1 rounded z-10">
                   Cód: ${p.code}
                 </span>
 
-                <!-- Badge de Descuento (Esquina superior derecha) -->
-                ${hasDiscount ? `
-                  <span class="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md uppercase">
+                <!-- Badge de Descuento (Esquina superior derecha si NO está vendido) -->
+                ${hasDiscount && !isSold ? `
+                  <span class="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md uppercase z-10">
                     ${p.discount}% OFF
                   </span>
                 ` : ''}
@@ -1465,17 +1471,20 @@
             <div class="p-4 flex flex-col flex-grow justify-between">
               <div>
                 <h3 class="font-semibold text-gray-900 text-base">${p.name}</h3>
-            
-                <!-- Bloque de Precios (Normal o con Descuento) --> 
+        
+                <!-- Bloque de Precios (Vendido, Con Descuento o Normal) --> 
                 <div class="mt-1 flex items-center gap-2">
-                  ${hasDiscount ? `
+                  ${isSold ? `
+                    <span class="text-gray-400 text-base line-through">Bs.${p.price}</span>
+                    <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded uppercase">VENDIDO</span>
+                  ` : hasDiscount ? `
                     <span class="text-red-600 font-bold text-lg">Bs.${p.price}</span>
                     <span class="text-gray-400 text-sm line-through">Bs.${p.originalPrice}</span>
                   ` : `
                     <span class="text-gray-900 font-bold text-lg">Bs.${p.price}</span>
                   `}
                 </div>
-            
+        
                 <!-- Talla con Botón Guía -->
                 <div class="mt-3">
                   <div class="flex justify-between items-center mb-1">
@@ -1484,7 +1493,7 @@
                       <i class="fas fa-ruler-horizontal"></i> Guía de tallas
                     </button>
                   </div>
-                  <select id="size-select-${p.id}" class="w-full border rounded-lg p-2 text-sm bg-gray-50 focus:outline-none focus:border-black">
+                  <select id="size-select-${p.id}" ${isSold ? 'disabled' : ''} class="w-full border rounded-lg p-2 text-sm bg-gray-50 focus:outline-none focus:border-black ${isSold ? 'cursor-not-allowed text-gray-400' : ''}">
                     ${p.sizes.map(size => `<option value="${size}">${size}</option>`).join('')}
                   </select>
                 </div>
@@ -1506,18 +1515,26 @@
 
               <!-- Accion -->
               <div class="mt-4 space-y-2">
-                <button onclick="sendDirectWhatsApp(${p.id})" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition">
-                  <i class="fab fa-whatsapp"></i> Pedir directo
-                </button>
-                <button onclick="addToCart(${p.id})" class="w-full bg-black hover:bg-gray-800 text-white py-2 rounded-lg text-sm font-medium transition">
-                  Agregar al carrito
-                </button>
+                ${isSold ? `
+                  <button disabled class="w-full bg-gray-300 text-gray-500 py-2 rounded-lg text-sm font-medium cursor-not-allowed uppercase">
+                    Agotado / Vendido
+                  </button>
+                ` : `
+                  <button onclick="sendDirectWhatsApp(${p.id})" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition">
+                    <i class="fab fa-whatsapp"></i> Pedir directo
+                  </button>
+                  <button onclick="addToCart(${p.id})" class="w-full bg-black hover:bg-gray-800 text-white py-2 rounded-lg text-sm font-medium transition">
+                    Agregar al carrito
+                  </button>
+                `}
               </div>
             </div>
           </div>
         `;
       }).join("");
     }
+
+
 
     // Pedido directo por producto
     function sendDirectWhatsApp(productId) {
@@ -1545,6 +1562,10 @@
       const prod = products.find(p => p.id === productId);
       const selectedSize = document.getElementById(`size-select-${productId}`).value;
 
+      if(prod && prod.sold){
+        alert("Este producto ya ha sido vendido.");
+        return;
+      }
       const cartIndex = cart.findIndex(item => item.id === productId && item.selectedSize === selectedSize);
 
       if (cartIndex > -1) {
